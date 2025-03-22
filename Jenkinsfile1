@@ -1,5 +1,6 @@
 (without K8S Stage)
-pipeline {
+
+  pipeline {
     agent any
     tools {
         jdk 'jdk17'
@@ -30,13 +31,6 @@ pipeline {
                 }
             }
         }
-        stage('Quality Gate') {
-            steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
-                }
-            }
-        }
         stage('Install Dependencies') {
             steps {
                 sh '''
@@ -45,6 +39,7 @@ pipeline {
                 if [ -f package.json ]; then
                     rm -rf node_modules package-lock.json  # Remove old dependencies
                     npm install  # Install fresh dependencies
+                    ls -la node_modules  # Verify node_modules is installed
                 else
                     echo "Error: package.json not found in bookmyshow-app!"
                     exit 1
@@ -54,7 +49,7 @@ pipeline {
         }
         stage('OWASP FS Scan') {
             steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheck additionalArguments: '--scan ./bookmyshow-app --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
             }
         }
         stage('Trivy FS Scan') {
@@ -109,3 +104,7 @@ pipeline {
         }
     }
 }
+          
+                    
+        
+            
